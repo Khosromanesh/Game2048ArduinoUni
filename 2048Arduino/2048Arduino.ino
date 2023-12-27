@@ -55,21 +55,26 @@ void input()
   
   if (joystickMove == false)
   {
-    if (mappedY > 10) {
+    if (mappedY > 10) 
       direction = UP;
-    } else if (mappedY < -10) {
+
+    else if (mappedY < -10)
       direction = DOWN;
-    } else if (mappedX > 10) {
+
+    else if (mappedX > 10)
       direction = RIGHT;
-    } else if (mappedX < -10) {
+
+    else if (mappedX < -10)
       direction = LEFT;
-    }
+      
+    else
+      direction = 5;
 
     joystickMove = true;
   }
 
   else if (-10 <= mappedY && mappedY <= 10 && -10 <= mappedX && mappedX <= 10)
-    joystickMove = true;
+    joystickMove = false;
 }
 
 void play() 

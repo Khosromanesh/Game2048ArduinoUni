@@ -76,31 +76,27 @@ void play()
 {
   //action to user movement
   input();
-  switch (direction) {
+  switch (direction) 
+  {
     case RIGHT:
-      for (int i = 0; i < 4; ++i) {
+      for (int i = 0; i < 4; ++i)
         Shift(0, i);
-      }
       break;
     case LEFT:
-      for (int i = 0; i < 4; ++i) {
+      for (int i = 0; i < 4; ++i)
         Shift(2, i);
-      }
       break;
     case DOWN:
-      for (int i = 0; i < 4; ++i) {
+      for (int i = 0; i < 4; ++i)
         Shift(3, i);
-      }
       break;
     case UP:
-      for (int i = 0; i < 4; ++i) {
+      for (int i = 0; i < 4; ++i)
         Shift(1, i);
-      }
-      break;
-    default:
-      //cout << endl << "null" << endl;  // not arrow
       break;
   }
+
+  direction = 5;
 }
 
 void displayTable() {

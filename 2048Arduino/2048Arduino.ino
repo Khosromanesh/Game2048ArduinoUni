@@ -9,6 +9,7 @@ int selection[4];
 int m[4][4];
 int rotatetext = 1;
 bool moved = false;
+bool joystickMove = false;
 
 //defintions for the direction of movement with jostick
 #define UP 0
@@ -45,27 +46,34 @@ void initializeMatrix() {
 
 
 //gets direction of movement
-void input() {
-
+void input() 
+{
   int xValue = analogRead(xPin);
   int yValue = analogRead(yPin);
   int mappedX = map(xValue, 0, 1023, -100, 100);
   int mappedY = map(yValue, 0, 1023, -100, 100);
+  
+  if (joystickMove == false)
+  {
+    if (mappedY > 10) {
+      direction = UP;
+    } else if (mappedY < -10) {
+      direction = DOWN;
+    } else if (mappedX > 10) {
+      direction = RIGHT;
+    } else if (mappedX < -10) {
+      direction = LEFT;
+    }
 
-  if (mappedY > 10) {
-    direction = UP;
-  } else if (mappedY < -10) {
-    direction = DOWN;
-  } else if (mappedX > 10) {
-    direction = RIGHT;
-  } else if (mappedX < -10) {
-    direction = LEFT;
+    joystickMove = true;
   }
+
+  else if (-10 <= mappedY && mappedY <= 10 && -10 <= mappedX && mappedX <= 10)
+    joystickMove = true;
 }
 
-void play() {
-
-
+void play() 
+{
   //action to user movement
   input();
   switch (direction) {
@@ -312,8 +320,8 @@ void setup() {
   display.setTextSize(1);
 }
 
-void loop() {
-
+void loop() 
+{
   displayTable();
   play();
 }

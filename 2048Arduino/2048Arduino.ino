@@ -3,12 +3,17 @@
 #include <Adafruit_PCD8544.h>
 #include <EEPROM.h>
 
+#define BUTTON_PIN 12
 
-Adafruit_PCD8544 display = Adafruit_PCD8544(13, 11, 9, 10, 8);
+
+
+Adafruit_PCD8544 display = Adafruit_PCD8544(4, 5, 6, 10, 11);
 int selection[4];
 int m[4][4];
+// int mShow[4][4];
 int rotatetext = 1;
 bool moved = false;
+bool joystickMove = false;
 
 //defintions for the direction of movement with jostick
 #define UP 0
@@ -19,7 +24,6 @@ bool moved = false;
 int direction;
 const int xPin = A0;
 const int yPin = A1;
-
 
 void initializeMatrix() {
   for (int i; i < 4; i++) {
@@ -41,8 +45,25 @@ void initializeMatrix() {
 
   m[x1][y1] = 2;
   m[x2][y2] = 2;
+
+  // for (int i; i < 4; i++) {
+  //   for (int j; j < 4; j++) {
+  //     mShow[i][j] = m[i][j];
+  //   }
+  // }
 }
 
+void addRandomNum() {
+
+  int x, y;
+
+  do {
+    x = random(4);
+    y = random(4);
+  } while (m[x][y] != 0);
+
+  m[x][y] = 2;
+}
 
 //gets direction of movement
 void input() {
@@ -52,15 +73,25 @@ void input() {
   int mappedX = map(xValue, 0, 1023, -100, 100);
   int mappedY = map(yValue, 0, 1023, -100, 100);
 
-  if (mappedY > 10) {
-    direction = UP;
-  } else if (mappedY < -10) {
-    direction = DOWN;
-  } else if (mappedX > 10) {
-    direction = RIGHT;
-  } else if (mappedX < -10) {
-    direction = LEFT;
-  }
+
+  if (joystickMove == false) {
+    if (mappedY > 10) {
+      direction = UP;
+      joystickMove = true;
+    } else if (mappedY < -10) {
+      direction = DOWN;
+      joystickMove = true;
+    } else if (mappedX > 10) {
+      direction = RIGHT;
+      joystickMove = true;
+    } else if (mappedX < -10) {
+      direction = LEFT;
+      joystickMove = true;
+    } else {
+      direction = 5;
+    }
+  } else if (-10 <= mappedY && mappedY <= 10 && -10 <= mappedX && mappedX <= 10)
+    joystickMove = false;
 }
 
 void play() {
@@ -78,6 +109,7 @@ void play() {
       for (int i = 0; i < 4; ++i) {
         Shift(2, i);
       }
+
       break;
     case DOWN:
       for (int i = 0; i < 4; ++i) {
@@ -93,6 +125,8 @@ void play() {
       //cout << endl << "null" << endl;  // not arrow
       break;
   }
+
+  direction = 5;
 }
 
 void displayTable() {
@@ -155,8 +189,6 @@ void displayTable() {
 
 
   display.display();
-
-  delay(500);
   display.clearDisplay();
 }
 
@@ -268,32 +300,91 @@ void Shift(int par, int num)  // Shift a, b, c and d.
 
   for (int i = 0; i < 3; ++i) {
     if (a == 0) {
-      a = b;
-      b = c;
-      c = d;
-      d = 0;
-      moved = true;
+      if (!(b == 0 && c == 0 && d == 0)) {
+        a = b;
+        b = c;
+        c = d;
+        d = 0;
+        moved = true;
+      }
     }
 
     if (b == 0) {
-      b = c;
-      c = d;
-      d = 0;
-      moved = true;
+      if (!(c == 0 && d == 0)) {
+        b = c;
+        c = d;
+        d = 0;
+        moved = true;
+      }
     }
 
     if (c == 0) {
-      c = d;
-      d = 0;
-      moved = true;
+      if (d != 0) {
+        c = d;
+        d = 0;
+        moved = true;
+      }
     }
   }
 
   Sum(par, num, a, b, c, d);
 }
 
+// int getPower(int num) {
+//   int counter = 0;
+
+//   while (num > 1) {
+//     num = num / 2;
+//     counter++;
+//   }
+
+//   return counter;
+// }
+
+// void convertToPower() {
+
+//   for (int i = 0; i < 4; ++i) {
+//     for (int j = 0; j < 4; ++j) {
+//       mShow[i][j] = getPower(m[i][j]);
+//     }
+//   }
+// }
+
+bool isLoser() {
+
+  // zero exist
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (m[i][j] == 0) {
+        return false;
+      }
+    }
+  }
+
+  // can move horizentally
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (m[i][j] == m[i][j + 1]) {
+        return false;
+      }
+    }
+  }
+
+  // can move vertically
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (m[j][i] == m[j + 1][i]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void setup() {
 
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   size_t const address{ 0 };
   unsigned int seed{};
@@ -314,6 +405,25 @@ void setup() {
 
 void loop() {
 
+  if (isLoser()) {
+
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print("You Loosed");
+    display.display();
+
+    while (digitalRead(BUTTON_PIN)) {
+    }
+
+  }
+
+  // convertToPower();
   displayTable();
   play();
+
+
+  if (moved) {
+    addRandomNum();
+    moved = false;
+  }
 }
